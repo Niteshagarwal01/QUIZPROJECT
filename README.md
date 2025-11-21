@@ -1,62 +1,128 @@
+# Quiz Game — Project Guide
 
-# Quiz Game
+This README describes the quiz project, how to run it, and where to make common changes. It includes short code snippets and tips for quick customization.
 
-A lightweight multiple-choice quiz built with vanilla HTML, CSS and JavaScript. The quiz runs a 10-question session sampled from a question bank, supports a per-question timer, keyboard shortcuts, and saves the high score to localStorage.
+---
 
-Features
+## Run it locally (two ways)
 
-- 10 randomized questions per run (sampled from the question bank)
-- Answers and questions are shuffled each run
-- Per-question countdown timer and timeout handling
-- Keyboard shortcuts: press 1–4 to select an answer
-- Persistent high score stored in localStorage
-- External `questions.json` supported — drop a JSON file in the project to change the question bank without editing code
-- Review results screen showing selected vs correct answers
+- Quick: open `index.html` in your browser.
+- Recommended for testing `questions.json`: run a tiny local server from the project root:
 
-Files
+```powershell
+python -m http.server 8000
+# open http://localhost:8000/
+```
 
-- `index.html` — UI and structure
-- `style.css` — styles (uses flexbox to center the quiz)
-- `script.js` — main quiz logic (wrapped in an IIFE to avoid global scope leakage)
-- `questions.json` — optional external question bank (sample file included)
+That's it — no install, no build system.
 
-How to run
+---
 
-1. Open `01-quiz-game/index.html` directly in a modern browser.
-2. Or serve the project folder with a static server (recommended when using `fetch` to load `questions.json`):
+## Files you care about
 
-	 - Python 3 (from project root):
+- `index.html` — structure and placeholders (start, quiz, result screens).
+- `style.css` — visual styles, colors, spacing and feedback states.
+- `script.js` — the app logic: loading questions, shuffling, timers, input and results.
+- `questions.json` (optional) — drop this file in to replace the built-in questions.
 
-		 ```
-		 python -m http.server 8000
-		 ```
+Edit `script.js` for behavior, `style.css` for look-and-feel.
 
-	 - Then open: `http://localhost:8000/01-quiz-game/`
+---
 
-Usage notes
+## The game flow — plain English
 
-- If `questions.json` is present in the `01-quiz-game` folder the app will attempt to load it at startup. If the fetch fails or the file is missing, the built-in question bank from `script.js` is used as a fallback.
-- The quiz samples 10 questions per run. If your question bank has fewer than 10 questions, the quiz will use all available questions.
-- The high score is stored in the browser under the key `quiz_high_score`.
+1. Load questions (tries `questions.json`, otherwise uses built-in array).
+2. Shuffle questions and their answers; pick the first N questions for the quiz.
+3. Show a question, render answer buttons, and start the per-question timer.
+4. Player picks an answer (click or press 1–4). If time runs out, the question is marked unanswered.
+5. Show feedback (correct/incorrect), record the answer, then move to next question or results.
+6. Show final score and save high score in `localStorage`.
 
-Customization
+---
 
-- To add or edit questions without editing code, open `01-quiz-game/questions.json` and edit the JSON array. Each question object should follow this shape:
+## Short code recipes (copy-paste friendly)
 
-```json
-{
-	"question": "Your question text",
-	"options": ["A", "B", "C", "D"],
-	"answer": 1
+These are small helpers that match the app's patterns. Use them to tweak behavior quickly.
+
+- Shuffle & sample:
+
+```javascript
+const shuffled = bank
+  .map(q => ({ ...q }))
+  .sort(() => Math.random() - 0.5)
+  .map(q => ({ ...q, answers: q.answers.slice().sort(() => Math.random() - 0.5) }));
+const quiz = shuffled.slice(0, QUESTIONS_PER_QUIZ);
+```
+
+- Render answers for a question:
+
+```javascript
+answersContainer.innerHTML = '';
+current.answers.forEach((opt, i) => {
+  const btn = document.createElement('button');
+  btn.className = 'answer-btn';
+  btn.textContent = `${i+1}. ${opt.text}`;
+  btn.dataset.correct = opt.correct;
+  btn.addEventListener('click', onAnswer);
+  answersContainer.appendChild(btn);
+});
+```
+
+- Timer (always clear old interval first):
+
+```javascript
+clearInterval(timerId);
+timeLeft = TIME_PER_QUESTION;
+timerId = setInterval(() => {
+  timeLeft--;
+  timerDisplay.textContent = timeLeft;
+  if (timeLeft <= 0) { clearInterval(timerId); onTimeout(); }
+}, 1000);
+```
+
+- Answer handler (visual feedback + scoring):
+
+```javascript
+function onAnswer(e) {
+  if (answersDisabled) return;
+  answersDisabled = true;
+  clearInterval(timerId);
+  const chosen = e.target;
+  const correct = chosen.dataset.correct === 'true';
+  Array.from(answersContainer.children).forEach(b => b.classList.toggle('correct', b.dataset.correct === 'true'));
+  chosen.classList.toggle('incorrect', !correct);
+  if (correct) score++;
+  setTimeout(nextOrFinish, 800);
 }
 ```
 
-Where `answer` is the zero-based index of the correct option.
+---
 
-Accessibility & testing
+## Quick edits you’ll want
 
-- Keyboard users can press 1–4 to choose answers; focus states are present on buttons.
-- To test layout issues, make sure no other global CSS overrides the page (open the page in an isolated tab or private window if unsure).
+- QUESTIONS_PER_QUIZ — change how many questions a session uses.
+- TIME_PER_QUESTION — change seconds per question.
+- Add `explanation` to question objects to show a short explanation after answers.
+- Drop in a `questions.json` to replace the built-in bank.
 
-If anything still looks off (for example the quiz appears in the top-right), tell me which browser and viewport you used and I'll inspect `index.html` and the live DOM to diagnose and fix any remaining layout overrides.
+Look for those constants near the top of `script.js`.
 
+---
+
+## Small styling wins
+
+- Bigger touch targets: increase padding + font-size on `.answer-btn`.
+- Smooth feedback: add `transition: background-color 0.18s, color 0.18s;` to `.answer-btn`.
+- Animate progress: `transition: width 350ms cubic-bezier(.2,.9,.2,1);` on `.progress`.
+
+These take 5–10 minutes and make the UI feel better.
+
+---
+
+## Troubleshooting (friendly)
+
+- Questions not loading? Use the local server above.
+- Timers acting weird? Confirm every question run calls `clearInterval(timerId)` before creating a new interval.
+- Answers become wrong after shuffle? Keep the `correct` boolean attached to each answer object and shuffle the objects themselves.
+
+---
