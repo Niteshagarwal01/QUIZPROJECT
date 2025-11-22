@@ -3,7 +3,6 @@
 
 This README describes the quiz project, how to run it, and where to make common changes. It includes short code snippets and tips for quick customization.
 
----
 
 ## Run it locally (two ways)
 
@@ -17,7 +16,7 @@ python -m http.server 8000
 
 That's it — no install, no build system.
 
----
+
 
 ## Files you care about
 
@@ -30,7 +29,7 @@ Edit `script.js` for behavior, `style.css` for look-and-feel.
 
 ---
 
-## The game flow — plain English
+## The game flow :-
 
 1. Load questions (tries `questions.json`, otherwise uses built-in array).
 2. Shuffle questions and their answers; pick the first N questions for the quiz.
@@ -39,9 +38,8 @@ Edit `script.js` for behavior, `style.css` for look-and-feel.
 5. Show feedback (correct/incorrect), record the answer, then move to next question or results.
 6. Show final score and save high score in `localStorage`.
 
----
 
-## Short code recipes (copy-paste friendly)
+## Short code recipes
 
 These are small helpers that match the app's patterns. Use them to tweak behavior quickly.
 
@@ -108,8 +106,6 @@ function onAnswer(e) {
 
 Look for those constants near the top of `script.js`.
 
----
-
 ## Small styling wins
 
 - Bigger touch targets: increase padding + font-size on `.answer-btn`.
@@ -118,9 +114,8 @@ Look for those constants near the top of `script.js`.
 
 These take 5–10 minutes and make the UI feel better.
 
----
 
-## Troubleshooting (friendly)
+## Troubleshooting
 
 - Questions not loading? Use the local server above.
 - Timers acting weird? Confirm every question run calls `clearInterval(timerId)` before creating a new interval.
