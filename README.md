@@ -121,4 +121,8 @@ These take 5–10 minutes and make the UI feel better.
 - Timers acting weird? Confirm every question run calls `clearInterval(timerId)` before creating a new interval.
 - Answers become wrong after shuffle? Keep the `correct` boolean attached to each answer object and shuffle the objects themselves.
 
+*Contributions welcome — feel free to open issues or create PRs to add features or fixes.*
+
+
 ---<img width="3750" height="4688" alt="4" src="https://github.com/user-attachments/assets/6ddc47dc-bae2-47b2-93cc-1647c65b7c36" />
+ 
